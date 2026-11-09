@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LMS Internship Discovery & College Enrollment System - Architecture & Working Prototype</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.9; transform: scale(1.05); }
+    }
+    @keyframes packet-move-h {
+      0% { left: 0%; opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { left: 100%; opacity: 0; }
+    }
+    @keyframes dash {
+      to {
+        stroke-dashoffset: -40;
+      }
+    }
+    .flow-wire {
+      stroke-dasharray: 6 6;
+      animation: dash 1.5s linear infinite;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(71, 85, 105, 0.8);
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.8);
+    }
+    .tab-active {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25));
+      border-color: #818cf8;
+      color: #ffffff;
+    }
+    .role-btn-active {
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+      border-color: #818cf8 !important;
+      background: rgba(30, 41, 59, 0.9) !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+
+  <!-- Header Banner -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-lg text-white tracking-tight">EduNexus LMS & Career Platform</h1>
+            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Enterprise v2.4</span>
+          </div>
+          <p class="text-xs text-slate-400">Roadmaps • Coding Labs • Verifiable Certificates • College Tracking • Internship Gateway</p>
+        </div>
+      </div>
+
+      <!-- Main Navigation Tabs -->
+      <nav class="flex items-center gap-2 bg-slate-950/70 p-1.5 rounded-xl border border-slate-800 text-sm">
+        <button onclick="switchMainTab('architecture')" id="tab-btn-architecture" class="px-4 py-2 rounded-lg font-medium transition-all text-slate-400 hover:text-white flex items-center gap-2 tab-active">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          System Architecture & Data Flow
+        </button>
+        <button onclick="switchMainTab('prototype')" id="tab-btn-prototype" class="px-4 py-2 rounded-lg font-medium transition-all text-slate-400 hover:text-white flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Live Working Prototype
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        </button>
+        <button onclick="switchMainTab('lifecycle')" id="tab-btn-lifecycle" class="px-4 py-2 rounded-lg font-medium transition-all text-slate-400 hover:text-white flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Lifecycle Walkthrough
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- MAIN VIEW CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: SYSTEM ARCHITECTURE & INTERACTIVE FLOW -->
+    <!-- ========================================== -->
+    <section id="view-architecture" class="space-y-8">
+      
+      <!-- Top Architecture Summary Bar -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+          <div class="p-3 bg-indigo-500/10 text-indigo-400 rounded-lg border border-indigo-500/20">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-medium">Multi-Tenant Roles</div>
+            <div class="text-lg font-bold text-white">Student, College, Company</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+          <div class="p-3 bg-purple-500/10 text-purple-400 rounded-lg border border-purple-500/20">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-medium">LMS Verification Engine</div>
+            <div class="text-lg font-bold text-white">Cryptographic Badging</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+          <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-medium">Skill Matching Engine</div>
+            <div class="text-lg font-bold text-white">Real-time Gap Analysis</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+          <div class="p-3 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-medium">College TPO Tracking</div>
+            <div class="text-lg font-bold text-white">NIRF & Cohort Analytics</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Animated Architecture Canvas -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 relative overflow-hidden shadow-2xl">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between pb-6 border-b border-slate-800 gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+              <h2 class="text-xl font-bold text-white">High-Level System Architecture & Event Pipeline</h2>
+            </div>
+            <p class="text-sm text-slate-400 mt-1">Click on any pipeline step below to animate end-to-end data transmission across microservices.</p>
+          </div>
+
+          <!-- Flow Control Buttons -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="triggerArchFlow('enrollment')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-600/50 transition">
+              1. College & Company Onboarding
+            </button>
+            <button onclick="triggerArchFlow('job_post')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-purple-600/30 text-purple-300 border border-purple-500/40 hover:bg-purple-600/50 transition">
+              2. Company Posts Internship
+            </button>
+            <button onclick="triggerArchFlow('match_apply')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/50 transition">
+              3. Student Discovers & 1-Click Applies
+            </button>
+            <button onclick="triggerArchFlow('tpo_tracking')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600/30 text-amber-300 border border-amber-500/40 hover:bg-amber-600/50 transition">
+              4. College TPO Tracking & Placement
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Status Log Line -->
+        <div id="arch-flow-status" class="my-4 py-2.5 px-4 rounded-xl bg-slate-950/80 border border-slate-800 text-sm flex items-center justify-between text-slate-300">
+          <div class="flex items-center gap-2">
+            <span class="text-indigo-400 font-mono text-xs font-semibold">[READY]</span>
+            <span id="arch-flow-text">Select an event flow above to visualize live traffic across architectural tiers.</span>
+          </div>
+          <span id="arch-active-tag" class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400">Idle</span>
+        </div>
+
+        <!-- Tier Diagram Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 relative mt-6">
+          
+          <!-- TIER 1: CLIENTS & STAKEHOLDERS -->
+          <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col justify-between relative group hover:border-indigo-500/50 transition">
+            <div class="border-b border-slate-800/80 pb-2 mb-3">
+              <span class="text-xs font-mono text-indigo-400 font-bold uppercase tracking-wider">Tier 1 • Client Portals</span>
+              <h3 class="text-sm font-semibold text-white">Actors & Web Frontends</h3>
+            </div>
+            
+            <div class="space-y-3">
+              <!-- Student Node -->
+              <div id="node-student" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all duration-300 hover:border-emerald-500/50">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">ST</span>
+                    <span class="text-sm font-medium text-slate-200">Student Portal</span>
+                  </div>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">React/Next</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-2">Roadmap • Code Lab • Certs • 1-Click Apply</div>
+              </div>
+
+              <!-- College TPO Node -->
+              <div id="node-college" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all duration-300 hover:border-amber-500/50">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">CL</span>
+                    <span class="text-sm font-medium text-slate-200">College TPO Portal</span>
+                  </div>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">Analytics</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-2">Cohort Roster • Student Tracker • Approvals</div>
+              </div>
+
+              <!-- Company Node -->
+              <div id="node-company" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all duration-300 hover:border-purple-500/50">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-md bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs font-bold">CO</span>
+                    <span class="text-sm font-medium text-slate-200">Company Recruiter</span>
+                  </div>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">ATS Board</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-2">Post Job/Internship • Skill Filter • ATS Kanban</div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-slate-500 flex items-center justify-between">
+              <span>Auth: OAuth2 / Multi-tenant JWT</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            </div>
+          </div>
+
+          <!-- TIER 2: GATEWAY & ROUTING -->
+          <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col justify-between relative group hover:border-indigo-500/50 transition">
+            <div class="border-b border-slate-800/80 pb-2 mb-3">
+              <span class="text-xs font-mono text-indigo-400 font-bold uppercase tracking-wider">Tier 2 • Edge & Routing</span>
+              <h3 class="text-sm font-semibold text-white">API Gateway & IAM</h3>
+            </div>
+
+            <div class="space-y-3">
+              <!-- Gateway Node -->
+              <div id="node-gateway" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all duration-300">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-200">Kong / Envoy Gateway</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">Rate Limit</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-2">SSL Termination • CORS • Load Balancing</div>
+              </div>
+
+              <!-- Auth & RBAC Node -->
+              <div id="node-auth" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all duration-300">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-200">RBAC & Tenant Isolation</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">Zero Trust</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-2">College Domains • Recruiter Verif • Student Auth</div>
+              </div>
+
+              <!-- Event Bus Node -->
+              <div id="node-eventbus" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all duration-300">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-200">Event Stream / Redis Bus</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono">Pub/Sub</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-2">JobCreated • AppSubmitted • OfferExtended</div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-slate-500 flex items-center justify-between">
+              <span>Latency: &lt; 15ms</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            </div>
+          </div>
+
+          <!-- TIER 3: MICROSERVICES & BUSINESS LOGIC -->
+          <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col justify-between relative group hover:border-indigo-500/50 transition">
+            <div class="border-b border-slate-800/80 pb-2 mb-3">
+              <span class="text-xs font-mono text-indigo-400 font-bold uppercase tracking-wider">Tier 3 • Core Microservices</span>
+              <h3 class="text-sm font-semibold text-white">Domain Services</h3>
+            </div>
+
+            <div class="space-y-3">
+              <!-- LMS Core -->
+              <div id="node-lms-service" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all duration-300">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-200">LMS Core Service</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">Existing</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-1">Roadmaps • Course Suggestion • Code Lab • Certs</div>
+              </div>
+
+              <!-- Skill Matcher Engine -->
+              <div id="node-matcher" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all duration-300">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-200">Skill Match & Gap Engine</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono">AI/Vector</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-1">Cross-analyzes student certs vs Job requirements</div>
+              </div>
+
+              <!-- College Tracking Service -->
+              <div id="node-college-service" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all duration-300">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-200">College & Cohort Service</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">New</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-1">Bulk Roster sync • Student tracking • NIRF stats</div>
+              </div>
+
+              <!-- Internship Discovery & ATS Service -->
+              <div id="node-job-service" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all duration-300">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-200">Internship & ATS Service</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono">New</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-1">Job Postings • 1-Click Apply • Hiring Stages</div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-slate-500 flex items-center justify-between">
+              <span>gRPC / REST Inter-service</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            </div>
+          </div>
+
+          <!-- TIER 4: DATA & LEDGER -->
+          <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col justify-between relative group hover:border-indigo-500/50 transition">
+            <div class="border-b border-slate-800/80 pb-2 mb-3">
+              <span class="text-xs font-mono text-indigo-400 font-bold uppercase tracking-wider">Tier 4 • Data & Storage</span>
+              <h3 class="text-sm font-semibold text-white">Datastores & Search</h3>
+            </div>
+
+            <div class="space-y-3">
+              <!-- Relational DB -->
+              <div id="node-db" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all duration-300">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-200">PostgreSQL Primary</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono">ACID</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-1">Colleges, Students, Jobs, Applications, Offers</div>
+              </div>
+
+              <!-- Elasticsearch / Vector DB -->
+              <div id="node-search" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all duration-300">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-200">Vector / Elastic Search</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 font-mono">Indexing</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-1">Skill embeddings, Fast keyword & job lookup</div>
+              </div>
+
+              <!-- Verifiable Certs Ledger / S3 -->
+              <div id="node-ledger" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all duration-300">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-200">Verifiable Cert Vault</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">SHA-256</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-1">Cryptographically signed course certificates & code logs</div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-slate-500 flex items-center justify-between">
+              <span>Read-Replicas & S3 Object Storage</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Matrix & Architecture Specifications -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Feature 1: College/Company Enrollment -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-4 border border-amber-500/20">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+          </div>
+          <h3 class="font-bold text-white text-base mb-2">1. College & Company Enrollment</h3>
+          <p class="text-xs text-slate-400 leading-relaxed mb-4">
+            Institutions (Colleges) and Employers (Companies) undergo automated verification. Colleges onboard whole student batches via CSV or SIS API, mapping roll numbers to student profiles.
+          </p>
+          <ul class="text-xs text-slate-300 space-y-2">
+            <li class="flex items-center gap-2"><span class="text-amber-400 font-bold">✓</span> Domain verification (@mit.edu, @company.com)</li>
+            <li class="flex items-center gap-2"><span class="text-amber-400 font-bold">✓</span> AICTE/University registration accreditation</li>
+            <li class="flex items-center gap-2"><span class="text-amber-400 font-bold">✓</span> Student roster sync & auto-linkage</li>
+            <li class="flex items-center gap-2"><span class="text-amber-400 font-bold">✓</span> Placement cell (TPO) administrative delegation</li>
+          </ul>
+        </div>
+
+        <!-- Feature 2: Post Job/Internship -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center mb-4 border border-purple-500/20">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+          </div>
+          <h3 class="font-bold text-white text-base mb-2">2. Internship / Job Posting</h3>
+          <p class="text-xs text-slate-400 leading-relaxed mb-4">
+            Companies create listings tied directly into LMS skills and course certificates. Hiring teams define stipend, batch eligibility, and select between Public or Exclusive Campus Drives.
+          </p>
+          <ul class="text-xs text-slate-300 space-y-2">
+            <li class="flex items-center gap-2"><span class="text-purple-400 font-bold">✓</span> LMS Course Prerequisites Tagging</li>
+            <li class="flex items-center gap-2"><span class="text-purple-400 font-bold">✓</span> Minimum coding proficiency & certificate filters</li>
+            <li class="flex items-center gap-2"><span class="text-purple-400 font-bold">✓</span> Target specific partner colleges or public pools</li>
+            <li class="flex items-center gap-2"><span class="text-purple-400 font-bold">✓</span> Built-in 4-Stage ATS Kanban Pipeline</li>
+          </ul>
+        </div>
+
+        <!-- Feature 3: Student Discovery & 1-Click Apply -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4 border border-emerald-500/20">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+          </div>
+          <h3 class="font-bold text-white text-base mb-2">3. Discovery, Skill-Match & Tracking</h3>
+          <p class="text-xs text-slate-400 leading-relaxed mb-4">
+            Students see exact skill-match scores against their completed roadmaps. 1-click apply transmits verified certificates, while colleges track placements live.
+          </p>
+          <ul class="text-xs text-slate-300 space-y-2">
+            <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> Real-time Skill Match % vs Job Requirements</li>
+            <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> "Bridge the Gap" Course Recommendations</li>
+            <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> Verified LMS Portfolio with Hash Verification</li>
+            <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> Live College TPO notification and endorsement</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: LIVE WORKING PROTOTYPE SIMULATOR    -->
+    <!-- ========================================== -->
+    <section id="view-prototype" class="hidden space-y-6">
+
+      <!-- Persona Switcher Bar -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+        <div class="flex items-center gap-3">
+          <div class="text-xs font-mono text-slate-400 uppercase tracking-wider font-semibold">Active Persona:</div>
+          <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+            <button onclick="switchPersona('student')" id="role-btn-student" class="px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 role-btn-active text-emerald-300 border border-emerald-500/50">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              Student (Rohan)
+            </button>
+            <button onclick="switchPersona('company')" id="role-btn-company" class="px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 text-slate-400 hover:text-white border border-transparent">
+              <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+              Company (TechCorp)
+            </button>
+            <button onclick="switchPersona('college')" id="role-btn-college" class="px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 text-slate-400 hover:text-white border border-transparent">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+              College TPO (NIT Tech)
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 text-xs text-slate-400">
+          <span class="flex items-center gap-1 text-slate-300 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            Reactive State Active (Changes sync across all 3 roles)
+          </span>
+          <button onclick="resetPrototypeData()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition">
+            Reset Demo Data
+          </button>
+        </div>
+      </div>
+
+      <!-- PERSONA 1: STUDENT VIEW -->
+      <div id="persona-view-student" class="space-y-6">
+        
+        <!-- Student Header Profile -->
+        <div class="bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-900 border border-emerald-500/30 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div class="flex items-center gap-4">
+            <div class="relative">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-bold text-2xl shadow-lg shadow-emerald-500/20">
+                RS
+              </div>
+              <span class="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-full bg-emerald-500 text-[10px] font-bold text-slate-950">Verified</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-xl font-bold text-white">Rohan Sharma</h2>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-medium">NIT Tech • Computer Science '26</span>
+              </div>
+              <div class="text-xs text-slate-400 mt-1 flex flex-wrap items-center gap-3">
+                <span>Roll No: <span class="font-mono text-slate-300">NIT-CS-2022-042</span></span>
+                <span>•</span>
+                <span>CGPA: <span class="text-emerald-400 font-bold">8.9 / 10.0</span></span>
+                <span>•</span>
+                <span>College Status: <span class="text-emerald-400 font-semibold">TPO Verified Active</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Existing LMS Progress Stats -->
+          <div class="flex items-center gap-3">
+            <div class="bg-slate-950/80 px-4 py-2 rounded-xl border border-slate-800 text-center">
+              <div class="text-xs text-slate-400">Career Goal</div>
+              <div class="text-sm font-bold text-emerald-400">Full-Stack Cloud Dev</div>
+            </div>
+            <div class="bg-slate-950/80 px-4 py-2 rounded-xl border border-slate-800 text-center">
+              <div class="text-xs text-slate-400">Roadmap Done</div>
+              <div class="text-sm font-bold text-white">82% (4/5 Modules)</div>
+            </div>
+            <div class="bg-slate-950/80 px-4 py-2 rounded-xl border border-slate-800 text-center">
+              <div class="text-xs text-slate-400">LMS Certs</div>
+              <div class="text-sm font-bold text-indigo-400">3 Verified Badges</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Student Skills & Certificates Overview -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              Rohan's LMS Verified Skills & Certificates (Syncs automatically with Career Roadmap)
+            </h3>
+            <span class="text-xs text-slate-400">Issued by EduNexus Learning Engine</span>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <span class="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-medium flex items-center gap-1.5">
+              <span>●</span> React.js Advanced (Score: 94%)
+            </span>
+            <span class="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-medium flex items-center gap-1.5">
+              <span>●</span> Node.js & Express Architecture (Score: 90%)
+            </span>
+            <span class="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-medium flex items-center gap-1.5">
+              <span>●</span> Data Structures & Algorithms (Score: 88%)
+            </span>
+            <span class="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-medium flex items-center gap-1.5">
+              <span>●</span> PostgreSQL & SQL Modeling (Score: 92%)
+            </span>
+            <span class="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 text-xs font-medium flex items-center gap-1.5">
+              <span>○</span> Docker & Kubernetes (In Progress: 40%)
+            </span>
+            <span class="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 text-xs font-medium flex items-center gap-1.5">
+              <span>○</span> AWS Cloud Foundations (Not started)
+            </span>
+          </div>
+        </div>
+
+        <!-- Student Opportunities Feed & Applications Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Column 1 & 2: Available Internships Feed -->
+          <div class="lg:col-span-2 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-bold text-white text-base">Recommended Internships & Jobs</h3>
+                <p class="text-xs text-slate-400">Opportunities matched against your verified LMS course certifications</p>
+              </div>
+              <span id="internship-count-badge" class="px-2.5 py-1 text-xs rounded-full bg-slate-800 text-slate-300 font-mono">
+                3 Openings
+              </span>
+            </div>
+
+            <!-- Internship Listings Container -->
+            <div id="student-job-list" class="space-y-4">
+              <!-- Dynamically populated by JS -->
+            </div>
+          </div>
+
+          <!-- Column 3: My Applications Tracker & College Endorsement Status -->
+          <div class="space-y-4">
+            <div>
+              <h3 class="font-bold text-white text-base">My Active Applications</h3>
+              <p class="text-xs text-slate-400">Track company hiring decisions & TPO status</p>
+            </div>
+
+            <div id="student-applications-list" class="space-y-3">
+              <!-- Dynamically populated by JS -->
+            </div>
+
+            <!-- LMS Skill Booster Widget -->
+            <div class="bg-gradient-to-br from-indigo-950/40 to-slate-900 border border-indigo-500/30 rounded-2xl p-4">
+              <div class="flex items-center gap-2 text-indigo-400 font-semibold text-xs uppercase tracking-wider mb-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                AI Skill Gap Recommendation
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Complete the <span class="font-semibold text-indigo-300">"Docker & Microservices Deployment"</span> module in your LMS Roadmap to achieve 100% eligibility for Stripe & CloudScale internships.
+              </p>
+              <button onclick="simulateCourseCompletion()" class="mt-3 w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                Fast-Track Complete Course & Get Certificate
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- PERSONA 2: COMPANY RECRUITER VIEW -->
+      <div id="persona-view-company" class="hidden space-y-6">
+        
+        <!-- Company Header Profile -->
+        <div class="bg-gradient-to-r from-purple-950/40 via-slate-900 to-slate-900 border border-purple-500/30 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div class="flex items-center gap-4">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-purple-500/20">
+              TC
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-xl font-bold text-white">TechCorp Solutions Inc.</h2>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-medium">Verified Enterprise Partner</span>
+              </div>
+              <div class="text-xs text-slate-400 mt-1 flex flex-wrap items-center gap-3">
+                <span>Domain: <span class="font-mono text-slate-300">careers@techcorp.io</span></span>
+                <span>•</span>
+                <span>Active Listings: <span class="text-purple-400 font-bold" id="company-active-count">2</span></span>
+                <span>•</span>
+                <span>Candidate Quality Gate: <span class="text-emerald-400 font-semibold">Verified LMS Certificates Required</span></span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="toggleJobModal(true)" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold transition flex items-center gap-2 shadow-lg shadow-purple-600/30">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+            Post New Job / Internship
+          </button>
+        </div>
+
+        <!-- ATS Kanban Pipeline -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-white">Live Applicant Tracking System (ATS Kanban)</h3>
+              <p class="text-xs text-slate-400">Drag or click actions to move candidates through verification, assessment, and offer stages.</p>
+            </div>
+            <div class="text-xs text-slate-400 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Live candidates filtered by LMS skill match
+            </div>
+          </div>
+
+          <!-- 4-Stage Kanban Columns -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            
+            <!-- Stage 1: Applied -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex flex-col min-h-[380px]">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+                <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-blue-400"></span> Applied
+                </span>
+                <span id="badge-count-applied" class="px-2 py-0.5 rounded bg-slate-800 text-xs font-mono text-slate-300">0</span>
+              </div>
+              <div id="col-applied" class="space-y-3 flex-1 overflow-y-auto custom-scrollbar">
+                <!-- Cards rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Stage 2: Shortlisted / Screening -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex flex-col min-h-[380px]">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+                <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-indigo-400"></span> Shortlisted / Code Review
+                </span>
+                <span id="badge-count-shortlisted" class="px-2 py-0.5 rounded bg-slate-800 text-xs font-mono text-slate-300">0</span>
+              </div>
+              <div id="col-shortlisted" class="space-y-3 flex-1 overflow-y-auto custom-scrollbar">
+                <!-- Cards rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Stage 3: Technical Interview -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex flex-col min-h-[380px]">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+                <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-amber-400"></span> Interview Round
+                </span>
+                <span id="badge-count-interview" class="px-2 py-0.5 rounded bg-slate-800 text-xs font-mono text-slate-300">0</span>
+              </div>
+              <div id="col-interview" class="space-y-3 flex-1 overflow-y-auto custom-scrollbar">
+                <!-- Cards rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Stage 4: Offer Extended -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex flex-col min-h-[380px]">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+                <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Offer Extended
+                </span>
+                <span id="badge-count-offered" class="px-2 py-0.5 rounded bg-slate-800 text-xs font-mono text-slate-300">0</span>
+              </div>
+              <div id="col-offered" class="space-y-3 flex-1 overflow-y-auto custom-scrollbar">
+                <!-- Cards rendered dynamically -->
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PERSONA 3: COLLEGE TPO VIEW -->
+      <div id="persona-view-college" class="hidden space-y-6">
+        
+        <!-- College Header Profile -->
+        <div class="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/30 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div class="flex items-center gap-4">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-600 to-orange-500 flex items-center justify-center text-slate-950 font-bold text-2xl shadow-lg shadow-amber-500/20">
+              NIT
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-xl font-bold text-white">National Institute of Technology (NIT Tech)</h2>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium">Accredited Tier-1 Partner</span>
+              </div>
+              <div class="text-xs text-slate-400 mt-1 flex flex-wrap items-center gap-3">
+                <span>Placement Head: <span class="font-mono text-slate-300">Prof. A. Sengupta (TPO)</span></span>
+                <span>•</span>
+                <span>Enrolled Batch: <span class="text-amber-400 font-bold">2026 Graduating Cohort (340 Students)</span></span>
+                <span>•</span>
+                <span>NIRF Readiness: <span class="text-emerald-400 font-semibold">94.2% Tracked</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button onclick="simulateCohortImport()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition flex items-center gap-2 border border-slate-700">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+              Bulk Import Student CSV
+            </button>
+            <button onclick="endorseAllEligible()" class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-amber-500/30">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              Batch Endorse High-Match Students
+            </button>
+          </div>
+        </div>
+
+        <!-- College Placement & Skill Telemetry Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div class="text-xs text-slate-400">Total Enrolled Students</div>
+            <div class="text-2xl font-bold text-white mt-1">340</div>
+            <div class="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
+              <span>↑ 100% Onboarded in LMS</span>
+            </div>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div class="text-xs text-slate-400">Course Roadmap Progress</div>
+            <div class="text-2xl font-bold text-indigo-400 mt-1">78.4%</div>
+            <div class="text-[11px] text-slate-400 mt-1">Average coding assignment score: 86%</div>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div class="text-xs text-slate-400">Active Internship Applications</div>
+            <div id="college-stat-applications" class="text-2xl font-bold text-purple-400 mt-1">0</div>
+            <div class="text-[11px] text-slate-400 mt-1">Applied across partner companies</div>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div class="text-xs text-slate-400">Offers Secured (Placement Rate)</div>
+            <div id="college-stat-offers" class="text-2xl font-bold text-emerald-400 mt-1">0</div>
+            <div class="text-[11px] text-emerald-400 mt-1">Auto-logged in college NIRF records</div>
+          </div>
+        </div>
+
+        <!-- Student Roster & Live Tracking Ledger -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-3 border-b border-slate-800">
+            <div>
+              <h3 class="font-bold text-white text-base">College Student Tracking Ledger</h3>
+              <p class="text-xs text-slate-400">Real-time transparency into student course completions, certificates, and job application stages.</p>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <input type="text" placeholder="Filter by Roll No or Student..." class="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-amber-500 w-48" />
+              <select class="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+                <option>All Branches (CS, IT, ECE)</option>
+                <option>Computer Science</option>
+                <option>Information Tech</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950 text-slate-400 uppercase font-mono text-[10px] border-b border-slate-800">
+                <tr>
+                  <th class="py-3 px-4">Student & Roll No</th>
+                  <th class="py-3 px-4">Career Goal & LMS Roadmap</th>
+                  <th class="py-3 px-4">Certificates</th>
+                  <th class="py-3 px-4">Active Applications</th>
+                  <th class="py-3 px-4">Recruitment Stage</th>
+                  <th class="py-3 px-4 text-right">TPO Actions</th>
+                </tr>
+              </thead>
+              <tbody id="college-student-table-body" class="divide-y divide-slate-800/60 font-medium">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: LIFECYCLE WALKTHROUGH & API SPECS  -->
+    <!-- ========================================== -->
+    <section id="view-lifecycle" class="hidden space-y-8">
+      
+      <!-- Interactive Step Timeline -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <h2 class="text-xl font-bold text-white mb-2">Step-by-Step Flow: From Career Goal to Internship Offer</h2>
+        <p class="text-sm text-slate-400 mb-6">Detailed walkthrough showing how the existing LMS seamlessly powers the new College & Internship discovery features.</p>
+
+        <div class="space-y-6 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-slate-800">
+          
+          <!-- Step 1 -->
+          <div class="relative flex items-start gap-4">
+            <div class="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-xs z-10 shadow-lg shadow-indigo-600/50">1</div>
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-white text-sm">College Onboards & Maps Student Roster</h4>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">Admin Action</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                The College Placement Officer (TPO) verifies institutional credentials and uploads their student cohort roster. Students logging in with institutional emails are auto-linked with their college ID and academic department.
+              </p>
+              <div class="mt-3 bg-slate-900 p-2.5 rounded font-mono text-[11px] text-slate-300">
+                POST /api/v1/college/roster/sync { college_code: "NIT-TECH", students_count: 340 }
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="relative flex items-start gap-4">
+            <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs z-10 shadow-lg shadow-blue-600/50">2</div>
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-white text-sm">Student Sets Goal & Upskills in LMS</h4>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">LMS Core</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                Student selects career path ("Full-Stack Developer"), follows the dynamically generated learning roadmap, completes interactive coding practice assignments, and earns cryptographically verifiable certificates upon course completion.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="relative flex items-start gap-4">
+            <div class="w-8 h-8 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center text-xs z-10 shadow-lg shadow-purple-600/50">3</div>
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-white text-sm">Company Registers & Posts Role with LMS Prerequisite Tags</h4>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">Recruiter Action</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                Verified companies configure job requirements directly mapped to the LMS skill taxonomy (e.g. requires <span class="text-purple-300 font-mono">React.js Advanced</span> + <span class="text-purple-300 font-mono">Node.js Microservices</span>). Companies can open it to all students or target specific partner colleges.
+              </p>
+              <div class="mt-3 bg-slate-900 p-2.5 rounded font-mono text-[11px] text-slate-300">
+                POST /api/v1/jobs/post { title: "Backend Intern", stipend: 45000, lms_skills_required: ["Node.js", "PostgreSQL"] }
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="relative flex items-start gap-4">
+            <div class="w-8 h-8 rounded-full bg-cyan-600 text-white font-bold flex items-center justify-center text-xs z-10 shadow-lg shadow-cyan-600/50">4</div>
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-white text-sm">Real-time Skill Matching & Gap Recommendations</h4>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300">Matching Engine</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                The Matching Engine computes intersection vectors between student achievements and job requirements. If a student is at 75% match, the system suggests the exact 1 course needed to qualify for 100% eligibility.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="relative flex items-start gap-4">
+            <div class="w-8 h-8 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-xs z-10 shadow-lg shadow-emerald-600/50">5</div>
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-white text-sm">1-Click Apply, TPO Live Tracking & Selection Pipeline</h4>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">End-to-End Synergy</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                Student applies with their verified LMS portfolio. The Company recruiter sees verified coding assignment grades and can advance the student on the ATS Kanban board. The College TPO receives real-time updates for every stage (Applied, Interview, Offer) to seamlessly maintain NIRF compliance.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Data Model Schema / REST APIs -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <h3 class="font-bold text-white text-lg mb-4">RESTful API Contract Summary</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+            <div class="text-emerald-400 font-bold"># College & Cohort Tracking</div>
+            <div class="text-slate-300"><span class="text-blue-400">POST</span> /api/v1/colleges/register</div>
+            <div class="text-slate-300"><span class="text-blue-400">POST</span> /api/v1/colleges/:id/roster/bulk</div>
+            <div class="text-slate-300"><span class="text-purple-400">GET</span> /api/v1/colleges/:id/students/tracking</div>
+            <div class="text-slate-300"><span class="text-amber-400">PATCH</span> /api/v1/colleges/:id/students/:sid/endorse</div>
+          </div>
+
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+            <div class="text-purple-400 font-bold"># Company & Opportunities</div>
+            <div class="text-slate-300"><span class="text-blue-400">POST</span> /api/v1/companies/register</div>
+            <div class="text-slate-300"><span class="text-blue-400">POST</span> /api/v1/jobs/post</div>
+            <div class="text-slate-300"><span class="text-purple-400">GET</span> /api/v1/jobs/discovery?student_id=:id</div>
+            <div class="text-slate-300"><span class="text-amber-400">PUT</span> /api/v1/applications/:id/stage</div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: POST NEW JOB / INTERNSHIP           -->
+  <!-- ========================================== -->
+  <div id="modal-post-job" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+          </div>
+          <h3 class="font-bold text-white text-base">Create Internship / Job Opportunity</h3>
+        </div>
+        <button onclick="toggleJobModal(false)" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+
+      <form id="form-create-job" onsubmit="handleCreateJob(event)" class="space-y-4 mt-4 text-xs">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Opportunity Title</label>
+          <input type="text" id="new-job-title" required placeholder="e.g. Cloud Infrastructure Intern" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-purple-500" value="Cloud Platform Engineer Intern" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Company Name</label>
+            <input type="text" id="new-job-company" required class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-purple-500" value="TechCorp Solutions" />
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Monthly Stipend (₹)</label>
+            <input type="text" id="new-job-stipend" required class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-purple-500" value="₹ 45,000 / month" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Location & Mode</label>
+            <select id="new-job-location" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-purple-500">
+              <option>Bengaluru (Hybrid)</option>
+              <option>Remote (India)</option>
+              <option>Hyderabad (On-site)</option>
+              <option>Pune (Hybrid)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Drive Target</label>
+            <select id="new-job-target" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-purple-500">
+              <option value="all">Open to All Verified LMS Students</option>
+              <option value="NIT Tech">Exclusive to NIT Tech Cohort</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Required LMS Skills / Course Certificates (Comma-separated)</label>
+          <input type="text" id="new-job-skills" required placeholder="React.js, Node.js, Docker" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-purple-500" value="Node.js, PostgreSQL, Docker" />
+          <span class="text-[10px] text-slate-500 mt-1 block">Students' match % is dynamically computed against their verified certificates in these skills.</span>
+        </div>
+
+        <div class="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
+          <button type="button" onclick="toggleJobModal(false)" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold shadow-lg shadow-purple-600/30 transition">Publish Internship</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- APPLICATION REACTION MODAL -->
+  <div id="modal-apply-confirm" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+        </div>
+        <div>
+          <h3 class="font-bold text-white text-base">Confirm 1-Click LMS Application</h3>
+          <p class="text-xs text-slate-400">Verified credentials auto-attached</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2 text-xs mb-4">
+        <div class="flex justify-between text-slate-300">
+          <span>Role:</span>
+          <span id="modal-apply-role" class="font-bold text-white">Full-Stack Intern</span>
+        </div>
+        <div class="flex justify-between text-slate-300">
+          <span>Company:</span>
+          <span id="modal-apply-company" class="font-medium text-purple-300">TechCorp</span>
+        </div>
+        <div class="flex justify-between text-slate-300">
+          <span>LMS Skill Match:</span>
+          <span id="modal-apply-match" class="font-bold text-emerald-400">85% Match</span>
+        </div>
+        <div class="flex justify-between text-slate-300">
+          <span>College Verification:</span>
+          <span class="text-amber-400 font-medium">NIT Tech Endorsed</span>
+        </div>
+        <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-400">
+          ✓ Digital Resume, Coding Assessment Scores & SHA-256 Certificate Hashes will be shared with the recruiter.
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3">
+        <button onclick="toggleApplyModal(false)" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">Cancel</button>
+        <button id="modal-apply-submit-btn" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-600/30">Submit Application</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    // ==========================================
+    // INITIAL REACTIVE APPLICATION STATE
+    // ==========================================
+    const DEFAULT_DATA = {
+      student: {
+        id: "s1",
+        name: "Rohan Sharma",
+        rollNo: "NIT-CS-2022-042",
+        college: "NIT Tech",
+        branch: "Computer Science '26",
+        cgpa: 8.9,
+        skills: ["React.js", "Node.js", "Data Structures", "PostgreSQL"],
+        completedCoursesCount: 4,
+        totalRoadmapModules: 5,
+        careerGoal: "Full-Stack Cloud Developer"
+      },
+      jobs: [
+        {
+          id: "job-101",
+          title: "Full-Stack Web Intern",
+          company: "TechCorp Solutions",
+          stipend: "₹ 40,000 / month",
+          location: "Bengaluru (Hybrid)",
+          target: "all",
+          requiredSkills: ["React.js", "Node.js", "PostgreSQL"],
+          postedAt: "1 day ago",
+          applicantsCount: 14
+        },
+        {
+          id: "job-102",
+          title: "Cloud & DevOps Intern",
+          company: "CloudScale Systems",
+          stipend: "₹ 50,000 / month",
+          location: "Remote (India)",
+          target: "all",
+          requiredSkills: ["Node.js", "Docker", "AWS Foundations"],
+          postedAt: "2 days ago",
+          applicantsCount: 8
+        },
+        {
+          id: "job-103",
+          title: "Junior Backend Engineer",
+          company: "FinTech Prime",
+          stipend: "₹ 45,000 / month",
+          location: "Hyderabad (On-site)",
+          target: "NIT Tech",
+          requiredSkills: ["PostgreSQL", "Node.js", "Data Structures"],
+          postedAt: "Just now",
+          applicantsCount: 5
+        }
+      ],
+      applications: [
+        {
+          id: "app-1",
+          jobId: "job-101",
+          jobTitle: "Full-Stack Web Intern",
+          company: "TechCorp Solutions",
+          studentId: "s1",
+          studentName: "Rohan Sharma",
+          studentRoll: "NIT-CS-2022-042",
+          studentCollege: "NIT Tech",
+          matchScore: 100,
+          stage: "shortlisted", // applied | shortlisted | interview | offered
+          appliedDate: "Today",
+          tpoEndorsed: true
+        }
+      ],
+      otherStudents: [
+        {
+          id: "s2",
+          name: "Priya Patel",
+          rollNo: "NIT-CS-2022-019",
+          branch: "Computer Science",
+          cgpa: 9.2,
+          careerGoal: "AI & Data Engineer",
+          roadmapProgress: "92%",
+          certs: 4,
+          activeApps: "FinTech Prime",
+          stage: "interview",
+          tpoEndorsed: true
+        },
+        {
+          id: "s3",
+          name: "Aditya Verma",
+          rollNo: "NIT-IT-2022-088",
+          branch: "Information Tech",
+          cgpa: 8.4,
+          careerGoal: "Frontend Architect",
+          roadmapProgress: "85%",
+          certs: 3,
+          activeApps: "TechCorp Solutions",
+          stage: "applied",
+          tpoEndorsed: false
+        },
+        {
+          id: "s4",
+          name: "Sneha Nair",
+          rollNo: "NIT-CS-2022-064",
+          branch: "Computer Science",
+          cgpa: 9.5,
+          careerGoal: "Systems & Cloud Engineer",
+          roadmapProgress: "95%",
+          certs: 5,
+          activeApps: "CloudScale Systems",
+          stage: "offered",
+          tpoEndorsed: true
+        }
+      ]
+    };
+
+    let state = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    let pendingApplyJobId = null;
+
+    // ==========================================
+    // UI NAVIGATION / TABS
+    // ==========================================
+    function switchMainTab(tabName) {
+      ['architecture', 'prototype', 'lifecycle'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.add('hidden');
+        document.getElementById(`tab-btn-${t}`).classList.remove('tab-active');
+      });
+
+      document.getElementById(`view-${tabName}`).classList.remove('hidden');
+      document.getElementById(`tab-btn-${tabName}`).classList.add('tab-active');
+    }
+
+    function switchPersona(persona) {
+      ['student', 'company', 'college'].forEach(p => {
+        document.getElementById(`persona-view-${p}`).classList.add('hidden');
+        const btn = document.getElementById(`role-btn-${p}`);
+        btn.classList.remove('role-btn-active');
+        btn.classList.remove('text-emerald-300', 'text-purple-300', 'text-amber-300');
+        btn.classList.add('text-slate-400');
+      });
+
+      document.getElementById(`persona-view-${persona}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`role-btn-${persona}`);
+      activeBtn.classList.add('role-btn-active');
+      activeBtn.classList.remove('text-slate-400');
+
+      if (persona === 'student') activeBtn.classList.add('text-emerald-300');
+      if (persona === 'company') activeBtn.classList.add('text-purple-300');
+      if (persona === 'college') activeBtn.classList.add('text-amber-300');
+
+      showToast(`Switched view to: ${persona.toUpperCase()} Persona`);
+    }
+
+    // ==========================================
+    // TOAST NOTIFICATIONS
+    // ==========================================
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      let borderCol = 'border-indigo-500/50 bg-slate-900';
+      let iconCol = 'text-indigo-400';
+      if (type === 'success') {
+        borderCol = 'border-emerald-500/50 bg-slate-900';
+        iconCol = 'text-emerald-400';
+      }
+
+      toast.className = `p-3.5 rounded-xl border ${borderCol} shadow-2xl text-xs text-white flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto max-w-sm`;
+      toast.innerHTML = `
+        <span class="${iconCol} font-bold text-sm">●</span>
+        <span>${msg}</span>
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 50);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // ==========================================
+    // SKILL MATCH CALCULATION ENGINE
+    // ==========================================
+    function calculateSkillMatch(studentSkills, requiredSkills) {
+      if (!requiredSkills || requiredSkills.length === 0) return { score: 100, matched: [], missing: [] };
+      
+      const studentSkillSet = new Set(studentSkills.map(s => s.toLowerCase().trim()));
+      const matched = [];
+      const missing = [];
+
+      requiredSkills.forEach(req => {
+        const found = studentSkills.some(st => st.toLowerCase().includes(req.toLowerCase()) || req.toLowerCase().includes(st.toLowerCase()));
+        if (found) {
+          matched.push(req);
+        } else {
+          missing.push(req);
+        }
+      });
+
+      const score = Math.round((matched.length / requiredSkills.length) * 100);
+      return { score, matched, missing };
+    }
+
+    // ==========================================
+    // RENDER FUNCTIONS
+    // ==========================================
+    function renderAll() {
+      renderStudentOpportunities();
+      renderStudentApplications();
+      renderCompanyATS();
+      renderCollegeTable();
+      updateBadges();
+    }
+
+    // 1. Render Student Feed
+    function renderStudentOpportunities() {
+      const list = document.getElementById('student-job-list');
+      list.innerHTML = '';
+
+      state.jobs.forEach(job => {
+        const match = calculateSkillMatch(state.student.skills, job.requiredSkills);
+        const hasApplied = state.applications.some(a => a.jobId === job.id && a.studentId === state.student.id);
+
+        let matchBadgeColor = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+        if (match.score < 70) matchBadgeColor = 'text-amber-400 bg-amber-500/10 border-amber-500/30';
+        if (match.score < 40) matchBadgeColor = 'text-rose-400 bg-rose-500/10 border-rose-500/30';
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition relative group";
+        
+        card.innerHTML = `
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <h4 class="font-bold text-white text-base">${job.title}</h4>
+                ${job.target !== 'all' ? `<span class="px-2 py-0.5 text-[10px] rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">Campus Exclusive</span>` : ''}
+              </div>
+              <div class="text-xs text-slate-400 mt-1 flex items-center gap-3">
+                <span class="text-purple-300 font-semibold">${job.company}</span>
+                <span>•</span>
+                <span>${job.location}</span>
+                <span>•</span>
+                <span class="text-slate-200 font-mono">${job.stipend}</span>
+              </div>
+            </div>
+
+            <!-- Skill Match Pill -->
+            <div class="px-3 py-1.5 rounded-xl border ${matchBadgeColor} flex items-center gap-1.5 text-xs font-bold font-mono">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              ${match.score}% LMS Match
+            </div>
+          </div>
+
+          <!-- Required Skills & Gap Indicator -->
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <span class="text-[10px] uppercase font-mono text-slate-400 block mb-1.5 font-bold">LMS Course Skills Demanded:</span>
+              <div class="flex flex-wrap gap-1.5">
+                ${job.requiredSkills.map(sk => {
+                  const isHave = match.matched.includes(sk);
+                  return `
+                    <span class="px-2 py-0.5 rounded text-[11px] font-medium ${isHave ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-300 border border-rose-500/20'}">
+                      ${isHave ? '✓' : '✗'} ${sk}
+                    </span>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- Apply Button -->
+            <div>
+              ${hasApplied 
+                ? `<span class="px-4 py-2 rounded-xl bg-slate-800 text-slate-400 text-xs font-bold inline-flex items-center gap-1.5 border border-slate-700">
+                     <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Applied
+                   </span>`
+                : `<button onclick="openApplyModal('${job.id}')" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-lg shadow-emerald-600/30 flex items-center gap-1.5">
+                     1-Click Apply with Certs
+                   </button>`
+              }
+            </div>
+          </div>
+        `;
+
+        list.appendChild(card);
+      });
+
+      document.getElementById('internship-count-badge').innerText = `${state.jobs.length} Openings`;
+    }
+
+    // 2. Render Student Applications
+    function renderStudentApplications() {
+      const list = document.getElementById('student-applications-list');
+      list.innerHTML = '';
+
+      if (state.applications.length === 0) {
+        list.innerHTML = `<div class="p-6 text-center text-xs text-slate-500 bg-slate-900 border border-slate-800 rounded-xl">No active applications yet. Browse openings and apply!</div>`;
+        return;
+      }
+
+      state.applications.forEach(app => {
+        let stageBadge = 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+        let stageName = 'Applied / In Review';
+        if (app.stage === 'shortlisted') { stageBadge = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'; stageName = 'Shortlisted'; }
+        if (app.stage === 'interview') { stageBadge = 'bg-amber-500/20 text-amber-300 border-amber-500/30'; stageName = 'Technical Interview'; }
+        if (app.stage === 'offered') { stageBadge = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'; stageName = '🎉 Offer Extended'; }
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800 rounded-xl p-3.5";
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-white text-xs">${app.jobTitle}</h4>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded border ${stageBadge} font-bold">${stageName}</span>
+          </div>
+          <div class="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
+            <span>${app.company}</span>
+            <span class="text-emerald-400 font-mono">${app.matchScore}% Match</span>
+          </div>
+          <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
+            <span>College Verification:</span>
+            <span class="${app.tpoEndorsed ? 'text-emerald-400 font-semibold' : 'text-slate-500'}">
+              ${app.tpoEndorsed ? '✓ TPO Endorsed' : 'Pending Endorsement'}
+            </span>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    // 3. Render Company ATS Kanban
+    function renderCompanyATS() {
+      const stages = ['applied', 'shortlisted', 'interview', 'offered'];
+      stages.forEach(st => {
+        document.getElementById(`col-${st}`).innerHTML = '';
+      });
+
+      let counts = { applied: 0, shortlisted: 0, interview: 0, offered: 0 };
+
+      // Render applications in ATS
+      state.applications.forEach(app => {
+        const stage = app.stage || 'applied';
+        if (counts[stage] !== undefined) counts[stage]++;
+
+        const col = document.getElementById(`col-${stage}`);
+        if (!col) return;
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-950 border border-slate-800 rounded-xl p-3 hover:border-slate-700 transition shadow-sm space-y-2";
+        
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-white text-xs">${app.studentName}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold">${app.matchScore}% Match</span>
+          </div>
+          <div class="text-[11px] text-slate-400">
+            <div>${app.jobTitle}</div>
+            <div class="text-[10px] text-slate-500">${app.studentCollege} • Roll: ${app.studentRoll}</div>
+          </div>
+          <div class="flex items-center gap-1.5 pt-1">
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400">LMS Cert Verified</span>
+            ${app.tpoEndorsed ? `<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">TPO Endorsed</span>` : ''}
+          </div>
+          <div class="pt-2 border-t border-slate-900 flex items-center justify-between">
+            <span class="text-[10px] text-slate-500 font-mono">Stage Actions:</span>
+            <div class="flex items-center gap-1">
+              ${stage !== 'applied' ? `<button onclick="moveStage('${app.id}', -1)" title="Move back" class="p-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-400">←</button>` : ''}
+              ${stage !== 'offered' ? `<button onclick="moveStage('${app.id}', 1)" title="Advance candidate" class="px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-semibold transition">Advance →</button>` : `<span class="text-[10px] text-emerald-400 font-bold">Hired</span>`}
+            </div>
+          </div>
+        `;
+
+        col.appendChild(card);
+      });
+
+      // Update counters
+      stages.forEach(st => {
+        document.getElementById(`badge-count-${st}`).innerText = counts[st];
+      });
+      document.getElementById('company-active-count').innerText = state.jobs.length;
+    }
+
+    // 4. Render College TPO Ledger
+    function renderCollegeTable() {
+      const tbody = document.getElementById('college-student-table-body');
+      tbody.innerHTML = '';
+
+      // Combined students: Rohan + other mock students
+      const allStudents = [
+        {
+          id: state.student.id,
+          name: state.student.name,
+          rollNo: state.student.rollNo,
+          branch: state.student.branch,
+          careerGoal: state.student.careerGoal,
+          roadmapProgress: "82%",
+          certs: state.student.completedCoursesCount,
+          activeApps: state.applications.length > 0 ? state.applications.map(a => a.company).join(', ') : 'None',
+          stage: state.applications.length > 0 ? state.applications[0].stage : 'none',
+          tpoEndorsed: state.applications.length > 0 ? state.applications[0].tpoEndorsed : true
+        },
+        ...state.otherStudents
+      ];
+
+      let totalOffers = 0;
+      let activeAppCount = 0;
+
+      allStudents.forEach(st => {
+        if (st.stage === 'offered') totalOffers++;
+        if (st.stage !== 'none') activeAppCount++;
+
+        let stageDisplay = '<span class="text-slate-500">No application</span>';
+        if (st.stage === 'applied') stageDisplay = '<span class="text-blue-400">● Screening</span>';
+        if (st.stage === 'shortlisted') stageDisplay = '<span class="text-indigo-400">● Shortlisted</span>';
+        if (st.stage === 'interview') stageDisplay = '<span class="text-amber-400">● In Interview</span>';
+        if (st.stage === 'offered') stageDisplay = '<span class="text-emerald-400 font-bold">🎉 Offer Placed</span>';
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-950/50 transition";
+        tr.innerHTML = `
+          <td class="py-3 px-4">
+            <div class="font-bold text-white">${st.name}</div>
+            <div class="text-[10px] font-mono text-slate-400">${st.rollNo}</div>
+          </td>
+          <td class="py-3 px-4">
+            <div class="text-slate-200">${st.careerGoal}</div>
+            <div class="w-24 bg-slate-800 rounded-full h-1.5 mt-1 overflow-hidden">
+              <div class="bg-indigo-500 h-1.5 rounded-full" style="width: ${st.roadmapProgress}"></div>
+            </div>
+          </td>
+          <td class="py-3 px-4">
+            <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-mono">${st.certs} Badges</span>
+          </td>
+          <td class="py-3 px-4 text-slate-300">${st.activeApps}</td>
+          <td class="py-3 px-4">${stageDisplay}</td>
+          <td class="py-3 px-4 text-right">
+            <button onclick="toggleEndorsement('${st.id}')" class="px-2.5 py-1 rounded text-[11px] font-semibold transition ${st.tpoEndorsed ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400 hover:text-white'}">
+              ${st.tpoEndorsed ? '✓ Endorsed' : 'Endorse Student'}
+            </button>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('college-stat-applications').innerText = activeAppCount;
+      document.getElementById('college-stat-offers').innerText = `${totalOffers} (${Math.round((totalOffers / allStudents.length) * 100)}%)`;
+    }
+
+    function updateBadges() {
+      // Dynamic updates
+    }
+
+    // ==========================================
+    // ACTIONS & INTERACTION LOGIC
+    // ==========================================
+
+    // Open Apply Modal
+    function openApplyModal(jobId) {
+      const job = state.jobs.find(j => j.id === jobId);
+      if (!job) return;
+
+      pendingApplyJobId = jobId;
+      const match = calculateSkillMatch(state.student.skills, job.requiredSkills);
+
+      document.getElementById('modal-apply-role').innerText = job.title;
+      document.getElementById('modal-apply-company').innerText = job.company;
+      document.getElementById('modal-apply-match').innerText = `${match.score}% LMS Match`;
+
+      const submitBtn = document.getElementById('modal-apply-submit-btn');
+      submitBtn.onclick = () => submitApplication(jobId, match.score);
+
+      document.getElementById('modal-apply-confirm').classList.remove('hidden');
+    }
+
+    function toggleApplyModal(show) {
+      if (show) document.getElementById('modal-apply-confirm').classList.remove('hidden');
+      else document.getElementById('modal-apply-confirm').classList.add('hidden');
+    }
+
+    function submitApplication(jobId, score) {
+      const job = state.jobs.find(j => j.id === jobId);
+      if (!job) return;
+
+      const newApp = {
+        id: `app-${Date.now()}`,
+        jobId: job.id,
+        jobTitle: job.title,
+        company: job.company,
+        studentId: state.student.id,
+        studentName: state.student.name,
+        studentRoll: state.student.rollNo,
+        studentCollege: state.student.college,
+        matchScore: score,
+        stage: 'applied',
+        appliedDate: "Just now",
+        tpoEndorsed: true
+      };
+
+      state.applications.push(newApp);
+      toggleApplyModal(false);
+      renderAll();
+
+      showToast(`Applied to ${job.title} at ${job.company}! College TPO notified.`, 'success');
+
+      // Also trigger architecture visualization signal
+      triggerArchFlow('match_apply');
+    }
+
+    // Modal Post Job
+    function toggleJobModal(show) {
+      if (show) document.getElementById('modal-post-job').classList.remove('hidden');
+      else document.getElementById('modal-post-job').classList.add('hidden');
+    }
+
+    function handleCreateJob(e) {
+      e.preventDefault();
+      const title = document.getElementById('new-job-title').value;
+      const company = document.getElementById('new-job-company').value;
+      const stipend = document.getElementById('new-job-stipend').value;
+      const location = document.getElementById('new-job-location').value;
+      const target = document.getElementById('new-job-target').value;
+      const skillsRaw = document.getElementById('new-job-skills').value;
+      const skills = skillsRaw.split(',').map(s => s.trim()).filter(Boolean);
+
+      const newJob = {
+        id: `job-${Date.now()}`,
+        title,
+        company,
+        stipend,
+        location,
+        target,
+        requiredSkills: skills,
+        postedAt: "Just now",
+        applicantsCount: 0
+      };
+
+      state.jobs.unshift(newJob);
+      toggleJobModal(false);
+      renderAll();
+
+      showToast(`New job "${title}" posted with ${skills.length} LMS prerequisite skills!`, 'success');
+      triggerArchFlow('job_post');
+    }
+
+    // Move ATS Kanban Candidate
+    function moveStage(appId, delta) {
+      const app = state.applications.find(a => a.id === appId);
+      if (!app) return;
+
+      const order = ['applied', 'shortlisted', 'interview', 'offered'];
+      const currentIndex = order.indexOf(app.stage);
+      const nextIndex = currentIndex + delta;
+
+      if (nextIndex >= 0 && nextIndex < order.length) {
+        app.stage = order[nextIndex];
+        renderAll();
+        showToast(`${app.studentName} advanced to: ${app.stage.toUpperCase()}`, 'info');
+
+        if (app.stage === 'offered') {
+          showToast(`🎉 Offer Letter Dispatched! College placement record updated.`, 'success');
+          triggerArchFlow('tpo_tracking');
+        }
+      }
+    }
+
+    // Fast-track LMS Course
+    function simulateCourseCompletion() {
+      if (!state.student.skills.includes("Docker")) {
+        state.student.skills.push("Docker");
+        state.student.skills.push("AWS Foundations");
+        state.student.completedCoursesCount += 1;
+        renderAll();
+        showToast("LMS Certificate earned in Docker & AWS Cloud! Your match scores increased!", 'success');
+      } else {
+        showToast("All advanced LMS modules already completed with verified certificate!", 'info');
+      }
+    }
+
+    // Endorse student
+    function toggleEndorsement(studentId) {
+      if (studentId === state.student.id) {
+        state.applications.forEach(a => a.tpoEndorsed = !a.tpoEndorsed);
+      } else {
+        const target = state.otherStudents.find(s => s.id === studentId);
+        if (target) target.tpoEndorsed = !target.tpoEndorsed;
+      }
+      renderAll();
+      showToast("TPO Endorsement status updated in official college ledger.", 'info');
+    }
+
+    function endorseAllEligible() {
+      state.applications.forEach(a => a.tpoEndorsed = true);
+      state.otherStudents.forEach(s => s.tpoEndorsed = true);
+      renderAll();
+      showToast("Batch endorsed all students with > 8.0 CGPA & LMS certificates!", 'success');
+    }
+
+    function simulateCohortImport() {
+      showToast("Bulk synced 340 students from College SIS API (NIT-TECH)", 'success');
+    }
+
+    function resetPrototypeData() {
+      state = JSON.parse(JSON.stringify(DEFAULT_DATA));
+      renderAll();
+      showToast("Demo state reset to original factory values.", 'info');
+    }
+
+    // ==========================================
+    // ARCHITECTURE ANIMATION CONTROLLER
+    // ==========================================
+    let animTimer = null;
+    function triggerArchFlow(type) {
+      clearTimeout(animTimer);
+      const nodes = [
+        'node-student', 'node-college', 'node-company',
+        'node-gateway', 'node-auth', 'node-eventbus',
+        'node-lms-service', 'node-matcher', 'node-college-service', 'node-job-service',
+        'node-db', 'node-search', 'node-ledger'
+      ];
+
+      // Reset styles
+      nodes.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('ring-2', 'ring-indigo-400', 'ring-emerald-400', 'ring-purple-400', 'ring-amber-400', 'scale-105');
+      });
+
+      const statusText = document.getElementById('arch-flow-text');
+      const tag = document.getElementById('arch-active-tag');
+
+      const highlight = (id, color = 'indigo') => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.add('ring-2', `ring-${color}-400`, 'scale-105');
+        }
+      };
+
+      if (type === 'enrollment') {
+        tag.className = 'text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold';
+        tag.innerText = 'Flow 1: College & Cohort Onboarding';
+        statusText.innerText = 'TPO registers institution -> Gateway verifies AICTE credentials -> College Service stores roster in DB';
+
+        highlight('node-college', 'amber');
+        setTimeout(() => highlight('node-gateway', 'indigo'), 400);
+        setTimeout(() => highlight('node-auth', 'indigo'), 800);
+        setTimeout(() => highlight('node-college-service', 'amber'), 1200);
+        setTimeout(() => highlight('node-db', 'blue'), 1600);
+      }
+
+      if (type === 'job_post') {
+        tag.className = 'text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold';
+        tag.innerText = 'Flow 2: Company Job Posting & LMS Skill Prerequisite Tagging';
+        statusText.innerText = 'Company posts role -> Gateway authenticates recruiter -> Job Service maps LMS skill taxonomy -> ElasticSearch indexes opportunity';
+
+        highlight('node-company', 'purple');
+        setTimeout(() => highlight('node-gateway', 'indigo'), 400);
+        setTimeout(() => highlight('node-job-service', 'purple'), 800);
+        setTimeout(() => highlight('node-lms-service', 'emerald'), 1200);
+        setTimeout(() => highlight('node-search', 'teal'), 1600);
+        setTimeout(() => highlight('node-db', 'blue'), 2000);
+      }
+
+      if (type === 'match_apply') {
+        tag.className = 'text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold';
+        tag.innerText = 'Flow 3: Real-Time Skill Matching & 1-Click Application';
+        statusText.innerText = 'Student queries feed -> Skill Matching Engine compares completed LMS certificates -> Student 1-click applies with cryptographic hash';
+
+        highlight('node-student', 'emerald');
+        setTimeout(() => highlight('node-gateway', 'indigo'), 400);
+        setTimeout(() => highlight('node-matcher', 'cyan'), 800);
+        setTimeout(() => highlight('node-ledger', 'emerald'), 1200);
+        setTimeout(() => highlight('node-eventbus', 'purple'), 1600);
+        setTimeout(() => {
+          highlight('node-company', 'purple');
+          highlight('node-college', 'amber');
+        }, 2000);
+      }
+
+      if (type === 'tpo_tracking') {
+        tag.className = 'text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold';
+        tag.innerText = 'Flow 4: Recruiter Advances Candidate -> College Placement Auto-Logs';
+        statusText.innerText = 'Company issues Offer -> Event Bus dispatches OfferEvent -> College Service logs placement -> Student & TPO dashboards update in real time';
+
+        highlight('node-company', 'purple');
+        setTimeout(() => highlight('node-eventbus', 'purple'), 500);
+        setTimeout(() => highlight('node-college-service', 'amber'), 1000);
+        setTimeout(() => highlight('node-student', 'emerald'), 1500);
+        setTimeout(() => highlight('node-college', 'amber'), 1500);
+      }
+    }
+
+    // Initial render
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAll();
+    });
+  </script>
+</body>
+</html>
